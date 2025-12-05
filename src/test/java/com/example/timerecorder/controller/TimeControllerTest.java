@@ -1,6 +1,7 @@
 package com.example.timerecorder.controller;
 
 import com.example.timerecorder.model.TimeRecord;
+import com.example.timerecorder.queue.TimeQueue;
 import com.example.timerecorder.repository.TimeRecordRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ class TimeControllerTest {
 
     @MockBean
     private TimeRecordRepository mockRepository;
+
+    @MockBean
+    private TimeQueue mockTimeQueue;
 
     @Test
     void times_returnsViewAndModelAttribute() throws Exception {
