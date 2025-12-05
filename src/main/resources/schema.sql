@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS time_records CASCADE;
+
+CREATE TABLE time_records
+(
+    id BIGSERIAL PRIMARY KEY,
+    recorded_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

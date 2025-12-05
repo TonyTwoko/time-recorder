@@ -1,0 +1,10 @@
+spring:
+  datasource:
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org.springframework.jdbc: WARN
+    org.testcontainers: INFO
