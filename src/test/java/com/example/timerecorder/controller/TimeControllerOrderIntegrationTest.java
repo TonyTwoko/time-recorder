@@ -38,7 +38,6 @@ class TimeControllerOrderIntegrationTest {
 
     @Test
     void orderIsStrictlyPreservedWithoutOrderBy() throws Exception {
-        // Останавливаем фоновую запись, чтобы не мешала
         try {
             dbWriterService.stop();
         } catch (Exception ignored) {
@@ -55,29 +54,16 @@ class TimeControllerOrderIntegrationTest {
             expected.add(t);
         }
 
-        // Проверяем порядок без ORDER BY — на настоящем PostgreSQL он сохраняется
-        List<Instant> fromRepo = repository.findAllNoOrder().stream()
-                .map(TimeRecord::recordedAt)  // record → метод с ()
+        List<Instant> fromRepo = repository.findAllNoOrder().stream().map(TimeRecord::recordedAt)
                 .toList();
 
-        assertThat(fromRepo)
-                .hasSize(100)
-                .isEqualTo(expected);
+        assertThat(fromRepo).hasSize(100).isEqualTo(expected);
 
-        // Проверяем, что контроллер тоже отдаёт в том же порядке
-        var result = mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andReturn();
+        var result = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();
 
         @SuppressWarnings("unchecked")
-        List<TimeRecord> fromModel = (List<TimeRecord>) result
-                .getModelAndView()
-                .getModel()
-                .get("records");
+        List<TimeRecord> fromModel = (List<TimeRecord>) result.getModelAndView().getModel().get("records");
 
-        assertThat(fromModel)
-                .hasSize(100)
-                .extracting(TimeRecord::recordedAt)
-                .isEqualTo(expected);
+        assertThat(fromModel).hasSize(100).extracting(TimeRecord::recordedAt).isEqualTo(expected);
     }
 }
