@@ -80,7 +80,7 @@ public class DbWriterService {
                 return;
             } catch (DataAccessException e) {
                 log.warn("Ошибка записи в БД: {} (попытка #{}, в очереди: {} элементов). Повтор через 5 сек...",
-                        instant, attempt, queue.size(), e.toString());
+                        instant, attempt, queue.size(), e);
                 if (!running) {
                     log.debug("Остановка во время ретрая для {}", instant);
                     return;
