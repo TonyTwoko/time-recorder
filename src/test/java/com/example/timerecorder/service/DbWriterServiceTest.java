@@ -32,7 +32,7 @@ class DbWriterServiceTest {
     private TimeRecordRepository mockRepository;
 
     private DbWriterService dbWriterService;
-    private final Logger log = LoggerFactory.getLogger(DbWriterService.class);
+    private final Logger log = LoggerFactory.getLogger(DbWriterServiceTest.class);
 
     @BeforeEach
     void setUp() {
@@ -46,7 +46,7 @@ class DbWriterServiceTest {
         dbWriterService.stop();
         Thread writerThread = dbWriterService.getWriterThread();
         writerThread.join(5000);
-        assertTrue(!writerThread.isAlive(), "Поток DbWriterService должен завершиться после stop().");
+        assertFalse(writerThread.isAlive(), "Поток DbWriterService должен завершиться после stop().");
     }
 
     @Test

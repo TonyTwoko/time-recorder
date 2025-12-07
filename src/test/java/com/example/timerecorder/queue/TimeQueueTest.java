@@ -87,8 +87,7 @@ class TimeQueueTest {
 
             @Override
             public void add(Instant instant) {
-                if (!testQueue.offer(instant)) {
-                }
+                testQueue.offer(instant);
             }
 
             @Override

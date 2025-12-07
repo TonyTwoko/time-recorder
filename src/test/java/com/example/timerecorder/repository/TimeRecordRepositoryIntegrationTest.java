@@ -32,7 +32,7 @@ class TimeRecordRepositoryIntegrationTest {
         assertThat(allRecords)
                 .hasSize(1);
 
-        TimeRecord savedRecord = allRecords.get(0);
+        TimeRecord savedRecord = allRecords.getFirst();
         assertThat(savedRecord.id()).isNotNull();
 
         long savedMillis = savedRecord.recordedAt().toEpochMilli();

@@ -16,5 +16,5 @@ spring:
 
 logging:
   level:
-    com.example.timerecorder: INFO
+    com.example.time-recorder: INFO
     org.springframework.jdbc: WARN
