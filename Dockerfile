@@ -7,7 +7,6 @@ RUN mvn -q dependency:go-offline
 
 COPY src ./src
 
-# Заменяем на сборку без тестов:
 RUN mvn -Dmaven.test.skip=true clean package
 
 # ---------- Stage 2: Run ----------
