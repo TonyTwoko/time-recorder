@@ -8,35 +8,30 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class TimeTickerTest {
 
     @Mock
-    private TimeQueue mockQueue;
+    TimeQueue mockQueue;
 
     @Captor
-    private ArgumentCaptor<Instant> instantCaptor;
+    ArgumentCaptor<ZonedDateTime> captor;
 
     @Test
-    void tick_adds_current_time_from_clock_to_queue() {
-        Instant fixedInstant = Instant.parse("2023-10-27T10:00:00Z");
-        Clock fixedClock = Clock.fixed(fixedInstant, ZoneOffset.UTC);
-        TimeTicker ticker = new TimeTicker(mockQueue, fixedClock);
+    void tick_adds_current_time_to_queue() {
+        TimeTicker ticker = new TimeTicker(mockQueue);
+
         ticker.tick();
-        verify(mockQueue).add(instantCaptor.capture());
-        Instant capturedInstant = instantCaptor.getValue();
-        assertEquals(fixedInstant, capturedInstant);
-    }
 
-    @Test
-    void tick_adds_system_time_if_clock_not_provided() {
-        tick_adds_current_time_from_clock_to_queue();
+        verify(mockQueue).add(captor.capture());
+
+        ZonedDateTime captured = captor.getValue();
+        assertEquals(ZoneId.of("Europe/Moscow"), captured.getZone());
     }
 }

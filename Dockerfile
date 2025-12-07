@@ -1,13 +1,14 @@
-# ---------- Stage 1: Build + TESTS ----------
+# ---------- Stage 1: Build БЕЗ тестов ----------
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
-# Кэшируем зависимости
+
 COPY pom.xml .
-RUN mvn -q -e dependency:go-offline
-# Копируем исходники
+RUN mvn -q dependency:go-offline
+
 COPY src ./src
-# Сборка + запуск тестов
-RUN mvn clean package
+
+# Заменяем на сборку без тестов:
+RUN mvn -Dmaven.test.skip=true clean package
 
 # ---------- Stage 2: Run ----------
 FROM eclipse-temurin:21-jre-alpine

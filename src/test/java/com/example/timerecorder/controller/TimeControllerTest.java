@@ -9,30 +9,29 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TimeController.class)
 class TimeControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired MockMvc mockMvc;
 
-    @MockitoBean
-    private TimeRecordRepository mockRepository;
-
-    @MockitoBean
-    private TimeQueue mockTimeQueue;
+    @MockitoBean TimeRecordRepository mockRepository;
+    @MockitoBean TimeQueue mockTimeQueue;
 
     @Test
     void times_returnsViewAndModelAttribute() throws Exception {
-        Instant now = Instant.now();
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Moscow"));
+
         TimeRecord record1 = new TimeRecord(1L, now);
         TimeRecord record2 = new TimeRecord(2L, now.plusSeconds(1));
+
         List<TimeRecord> records = List.of(record1, record2);
 
         when(mockRepository.findAllNoOrder()).thenReturn(records);

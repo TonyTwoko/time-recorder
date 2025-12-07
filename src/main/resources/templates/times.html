@@ -5,14 +5,10 @@
     <title>Time Recorder</title>
     <meta http-equiv="refresh" content="3" id="refresh-meta">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a2e; color: #eee; margin:
-                0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: #16213e; padding: 20px;
-            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: #16213e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         h1 { color: #00d4ff; text-align: center; margin-bottom: 10px; }
-        .status {
-            text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1.1em; margin: 15px 0;
-        }
+        .status { text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1.1em; margin: 15px 0; }
         .online { background: #0f3460; border: 1px solid #00d4ff; color: #00d4ff; }
         .offline { background: #520000; border: 1px solid #ff3333; color: #ff6666; animation: pulse 2s infinite; }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
@@ -20,9 +16,7 @@
         th, td { padding: 10px; border-bottom: 1px solid #334466; text-align: left; }
         th { background: #0f3460; color: #00d4ff; }
         tr:hover { background: #1e2a44; }
-        footer {
-            text-align: center; margin-top: 30px; color: #888; font-size: 0.9em;
-        }
+        footer { text-align: center; margin-top: 30px; color: #888; font-size: 0.9em; }
         .frozen { color: #ff9966; font-weight: bold; }
     </style>
 </head>
@@ -47,7 +41,9 @@
         <tbody>
         <tr th:each="r : ${records}">
             <td th:text="${r.id}">1</td>
-            <td th:text="${#temporals.format(r.recordedAt, 'yyyy-MM-dd HH:mm:ss')}">2025-01-01 12:00:00</td>
+            <td th:text="${#temporals.format(r.recordedAt.withZoneSameInstant(T(java.time.ZoneId).of('Europe/Moscow')), 'yyyy-MM-dd HH:mm:ss')}">
+                2025-01-01 12:00:00
+            </td>
         </tr>
         </tbody>
     </table>

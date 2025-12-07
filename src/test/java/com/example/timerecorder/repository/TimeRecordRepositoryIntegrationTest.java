@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,87 +17,77 @@ import static org.assertj.core.api.Assertions.within;
 @ContextConfiguration(classes = com.example.timerecorder.TestcontainersConfiguration.class)
 class TimeRecordRepositoryIntegrationTest {
 
-    private static final long TOLERANCE_MILLIS = 1L;
+    private static final long TOLERANCE_MILLIS = 1;
 
     @Autowired
     private TimeRecordRepository repository;
 
     @Test
     void insertInstant_savesRecordToDatabase() {
-        Instant instantToSave = Instant.now();
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Moscow"));
 
-        repository.insertInstant(instantToSave);
+        repository.insertZonedDateTime(now);
 
-        List<TimeRecord> allRecords = (List<TimeRecord>) repository.findAll();
+        List<TimeRecord> list = (List<TimeRecord>) repository.findAll();
+        assertThat(list).hasSize(1);
 
-        assertThat(allRecords)
-                .hasSize(1);
+        TimeRecord saved = list.getFirst();
 
-        TimeRecord savedRecord = allRecords.getFirst();
-        assertThat(savedRecord.id()).isNotNull();
-
-        long savedMillis = savedRecord.recordedAt().toEpochMilli();
-        long expectedMillis = instantToSave.toEpochMilli();
-        assertThat(savedMillis).isCloseTo(expectedMillis, within(TOLERANCE_MILLIS));
+        assertThat(saved.recordedAt().toInstant().toEpochMilli())
+                .isCloseTo(now.toInstant().toEpochMilli(), within(TOLERANCE_MILLIS));
     }
 
     @Test
     void findAllNoOrder_returnsAllRecords() {
-        Instant instant1 = Instant.now();
-        Instant instant2 = instant1.plusSeconds(10);
-        Instant instant3 = instant1.minusSeconds(5);
+        ZonedDateTime t1 = ZonedDateTime.now(ZoneId.of("Europe/Moscow"));
+        ZonedDateTime t2 = t1.plusSeconds(10);
+        ZonedDateTime t3 = t1.minusSeconds(5);
 
-        repository.insertInstant(instant1);
-        repository.insertInstant(instant2);
-        repository.insertInstant(instant3);
+        repository.insertZonedDateTime(t1);
+        repository.insertZonedDateTime(t2);
+        repository.insertZonedDateTime(t3);
 
-        List<TimeRecord> retrievedRecords = repository.findAllNoOrder();
+        List<TimeRecord> records = repository.findAllNoOrder();
 
-        assertThat(retrievedRecords).hasSize(3);
+        assertThat(records).hasSize(3);
+        assertThat(records).allMatch(r -> r.id() != null);
 
-        List<Long> retrievedMillis = retrievedRecords.stream()
-                .map(record -> record.recordedAt().toEpochMilli())
+        List<Long> retrieved = records.stream()
+                .map(r -> r.recordedAt().toInstant().toEpochMilli())
                 .toList();
 
-        List<Long> expectedMillis = List.of(
-                instant1.toEpochMilli(),
-                instant2.toEpochMilli(),
-                instant3.toEpochMilli()
+        List<Long> expected = List.of(
+                t1.toInstant().toEpochMilli(),
+                t2.toInstant().toEpochMilli(),
+                t3.toInstant().toEpochMilli()
         );
 
-        for (Long dbMillis : retrievedMillis) {
-            assertThat(expectedMillis).anySatisfy(expectedMs
-                    -> assertThat(dbMillis).isCloseTo(expectedMs, within(TOLERANCE_MILLIS)));
+        for (Long dbMillis : retrieved) {
+            assertThat(expected)
+                    .anySatisfy(exp -> assertThat(dbMillis)
+                            .isCloseTo(exp, within(TOLERANCE_MILLIS)));
         }
-
-        assertThat(retrievedRecords).allMatch(record -> record.id() != null);
     }
 
     @Test
     void crudOperations_workCorrectly() {
-        Instant instant = Instant.now();
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Moscow"));
 
-        TimeRecord savedRecord = repository.save(new TimeRecord(instant));
+        repository.insertZonedDateTime(now);
 
-        assertThat(savedRecord.id()).isNotNull();
-        long savedMillis = savedRecord.recordedAt().toEpochMilli();
-        long expectedMillis = instant.toEpochMilli();
-        assertThat(savedMillis).isCloseTo(expectedMillis, within(TOLERANCE_MILLIS));
+        TimeRecord saved = repository.findAll().iterator().next();
 
-        Long savedId = savedRecord.id();
-        TimeRecord foundRecord = repository.findById(savedId).orElse(null);
+        assertThat(saved.id()).isNotNull();
+        assertThat(saved.recordedAt().toInstant().toEpochMilli())
+                .isCloseTo(now.toInstant().toEpochMilli(), within(TOLERANCE_MILLIS));
 
-        assertThat(foundRecord).isNotNull();
-        assertThat(foundRecord.id()).isEqualTo(savedId);
-        long foundMillis = foundRecord.recordedAt().toEpochMilli();
-        assertThat(foundMillis).isCloseTo(savedMillis, within(TOLERANCE_MILLIS));
+        Long id = saved.id();
+        TimeRecord found = repository.findById(id).orElseThrow();
 
-        repository.deleteById(savedId);
+        assertThat(found.recordedAt().toInstant().toEpochMilli())
+                .isCloseTo(now.toInstant().toEpochMilli(), within(TOLERANCE_MILLIS));
 
-        boolean existsAfterDelete = repository.existsById(savedId);
-        assertThat(existsAfterDelete).isFalse();
-
-        List<TimeRecord> allRecordsAfterDelete = repository.findAllNoOrder();
-        assertThat(allRecordsAfterDelete).isEmpty();
+        repository.deleteById(id);
+        assertThat(repository.existsById(id)).isFalse();
     }
 }

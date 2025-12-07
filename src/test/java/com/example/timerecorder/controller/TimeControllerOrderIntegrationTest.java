@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,14 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestcontainersConfiguration.class)
 class TimeControllerOrderIntegrationTest {
 
-    @Autowired
-    MockMvc mockMvc;
-
-    @Autowired
-    TimeRecordRepository repository;
-
-    @Autowired
-    DbWriterService dbWriterService;
+    @Autowired MockMvc mockMvc;
+    @Autowired TimeRecordRepository repository;
+    @Autowired DbWriterService dbWriterService;
 
     @Test
     void orderIsStrictlyPreservedWithoutOrderBy() throws Exception {
@@ -45,25 +41,32 @@ class TimeControllerOrderIntegrationTest {
 
         repository.deleteAll();
 
-        List<Instant> expected = new ArrayList<>();
-        Instant base = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        List<ZonedDateTime> expected = new ArrayList<>();
+        ZonedDateTime base = ZonedDateTime.now(ZoneId.of("Europe/Moscow")).truncatedTo(ChronoUnit.SECONDS);
 
         for (int i = 0; i < 100; i++) {
-            Instant t = base.plusSeconds(i);
-            repository.insertInstant(t);
+            ZonedDateTime t = base.plusSeconds(i);
+            repository.insertZonedDateTime(t);
             expected.add(t);
         }
 
-        List<Instant> fromRepo = repository.findAllNoOrder().stream().map(TimeRecord::recordedAt)
+        List<ZonedDateTime> fromRepo = repository.findAllNoOrder().stream()
+                .map(TimeRecord::recordedAt)
                 .toList();
 
         assertThat(fromRepo).hasSize(100).isEqualTo(expected);
 
-        var result = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();
+        var result = mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andReturn();
 
         @SuppressWarnings("unchecked")
-        List<TimeRecord> fromModel = (List<TimeRecord>) result.getModelAndView().getModel().get("records");
+        List<TimeRecord> fromModel =
+                (List<TimeRecord>) result.getModelAndView().getModel().get("records");
 
-        assertThat(fromModel).hasSize(100).extracting(TimeRecord::recordedAt).isEqualTo(expected);
+        assertThat(fromModel)
+                .hasSize(100)
+                .extracting(TimeRecord::recordedAt)
+                .isEqualTo(expected);
     }
 }

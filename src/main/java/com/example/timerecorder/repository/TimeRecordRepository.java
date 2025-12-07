@@ -5,14 +5,14 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface TimeRecordRepository extends CrudRepository<TimeRecord, Long> {
 
     @Modifying
-    @Query("INSERT INTO time_records (recorded_at) VALUES (:recordedAt)")
-    void insertInstant(Instant recordedAt);
+    @Query("INSERT INTO time_records (recorded_at) VALUES (CAST(:recordedAt AS TIMESTAMP WITH TIME ZONE))")
+    void insertZonedDateTime(ZonedDateTime recordedAt);
 
     @Query("SELECT * FROM time_records")
     List<TimeRecord> findAllNoOrder();

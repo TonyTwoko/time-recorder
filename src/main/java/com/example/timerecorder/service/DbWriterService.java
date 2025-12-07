@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 
 @Service
 public class DbWriterService {
@@ -53,43 +53,46 @@ public class DbWriterService {
     private void runWriter() {
         log.debug("Цикл runWriter запущен в потоке: {}", Thread.currentThread().getName());
         while (running) {
-            Instant instant;
+            ZonedDateTime time;
             try {
-                instant = queue.take();
+                time = queue.take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                log.debug("Поток DbWriterService '{}' прерван во время ожидания элемента, выход из цикла runWriter.",
+                log.debug("Поток '{}' прерван при ожидании элемента, выход.",
                         Thread.currentThread().getName());
                 break;
             }
-            if (instant != null) {
-                writeToDb(instant);
+
+            if (time != null) {
+                writeToDb(time);
             }
         }
-        log.debug("Цикл runWriter завершен в потоке: {}", Thread.currentThread().getName());
+        log.debug("Цикл runWriter завершен.");
     }
 
-    private void writeToDb(Instant instant) {
+    private void writeToDb(ZonedDateTime time) {
         int attempt = 0;
         while (running) {
             attempt++;
             try {
-                repository.insertInstant(instant);
-                log.info("Успешно записано в БД: {} (попытка #{}, в очереди осталось: {})",
-                        instant, attempt, queue.size());
+                repository.insertZonedDateTime(time);
+                log.info("Успешно записано в БД: {} (попытка #{}, осталось в очереди: {})",
+                        time, attempt, queue.size());
                 return;
             } catch (DataAccessException e) {
-                log.warn("Ошибка записи в БД: {} (попытка #{}, в очереди: {} элементов). Повтор через 5 сек...",
-                        instant, attempt, queue.size(), e);
+                log.warn("Ошибка записи {} (попытка #{}, очередь: {}). Повтор через 5 сек...",
+                        time, attempt, queue.size(), e);
+
                 if (!running) {
-                    log.debug("Остановка во время ретрая для {}", instant);
+                    log.debug("Остановка во время ретрая: {}", time);
                     return;
                 }
+
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    log.debug("Прервано во время ожидания ретрая для {}", instant);
+                    log.debug("Прервано во время ожидания ретрая: {}", time);
                     return;
                 }
             }

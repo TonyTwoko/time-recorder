@@ -21,5 +21,4 @@ public class TimeController {
         model.addAttribute("dbConnected", true);
         return "times";
     }
-
 }

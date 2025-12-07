@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -13,18 +13,18 @@ public class TimeQueue {
 
     private static final Logger log = LoggerFactory.getLogger(TimeQueue.class);
 
-    private final BlockingQueue<Instant> queue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<ZonedDateTime> queue = new LinkedBlockingQueue<>();
 
-    public void add(Instant instant) {
+    public void add(ZonedDateTime value) {
         try {
-            queue.put(instant);
+            queue.put(value);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.warn("Прервано при добавлении в очередь", e);
         }
     }
 
-    public Instant take() throws InterruptedException {
+    public ZonedDateTime take() throws InterruptedException {
         return queue.take();
     }
 
