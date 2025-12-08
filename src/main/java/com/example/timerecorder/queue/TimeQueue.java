@@ -2,8 +2,10 @@ package com.example.timerecorder.queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.time.ZonedDateTime;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -13,7 +15,19 @@ public class TimeQueue {
 
     private static final Logger log = LoggerFactory.getLogger(TimeQueue.class);
 
-    private final BlockingQueue<ZonedDateTime> queue = new LinkedBlockingQueue<>();
+    @Value("${app.queue.capacity:10000}")
+    private int capacity;
+
+    private BlockingQueue<ZonedDateTime> queue;
+
+    @PostConstruct
+    public void init() {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("app.queue.capacity должен быть > 0");
+        }
+        queue = new LinkedBlockingQueue<>(capacity);
+        log.info("TimeQueue инициализирована с capacity = {}", capacity);
+    }
 
     public void add(ZonedDateTime value) {
         try {
@@ -37,10 +51,14 @@ public class TimeQueue {
     }
 
     public int remainingCapacity() {
-        return Integer.MAX_VALUE;
+        return queue.remainingCapacity();
     }
 
-    public int getSize() {
-        return queue.size();
+    LinkedBlockingQueue<ZonedDateTime> getQueueForTest() {
+        return (LinkedBlockingQueue<ZonedDateTime>) queue;
+    }
+
+    void putForTest(ZonedDateTime value) throws InterruptedException {
+        queue.put(value);
     }
 }

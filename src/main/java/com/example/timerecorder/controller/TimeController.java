@@ -17,7 +17,7 @@ public class TimeController {
     @GetMapping({"/", "/times"})
     public String times(Model model) {
         model.addAttribute("records", repository.findAllNoOrder());
-        model.addAttribute("queueSize", timeQueue.getSize());
+        model.addAttribute("queueSize", timeQueue.size());
         model.addAttribute("dbConnected", true);
         return "times";
     }
