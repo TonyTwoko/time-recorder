@@ -20,13 +20,10 @@ class TimeQueueTest {
     void setUp() {
         queue = new TimeQueue();
 
-        // Подготовка приватного поля capacity
         ReflectionTestUtils.setField(queue, "capacity", 1000);
 
-        // Инициализация очереди
         queue.init();
 
-        // Подмена приватного queue на тестовый экземпляр
         LinkedBlockingQueue<ZonedDateTime> testQueue =
                 new LinkedBlockingQueue<>(1000);
         ReflectionTestUtils.setField(queue, "queue", testQueue);
@@ -45,7 +42,8 @@ class TimeQueueTest {
 
     @Test
     void fifo_order() throws InterruptedException {
-        ZonedDateTime t1 = ZonedDateTime.of(2025, 1, 1, 10, 0, 0, 0,
+        ZonedDateTime t1 = ZonedDateTime.of(2025, 1, 1,
+                10, 0, 0, 0,
                 ZoneId.of("Europe/Moscow"));
         ZonedDateTime t2 = t1.plusSeconds(1);
         ZonedDateTime t3 = t1.plusSeconds(2);
@@ -61,27 +59,22 @@ class TimeQueueTest {
 
     @Test
     void put_blocks_when_queue_is_full_awaitility() throws Exception {
-        // маленькая очередь
         LinkedBlockingQueue<ZonedDateTime> smallQueue =
                 new LinkedBlockingQueue<>(1);
 
         ReflectionTestUtils.setField(queue, "queue", smallQueue);
 
-        // заполняем очередь
         queue.add(ZonedDateTime.now());
 
         Thread t = new Thread(() -> {
-            queue.add(ZonedDateTime.now()); // должен заблокироваться
+            queue.add(ZonedDateTime.now());
         });
         t.start();
 
-        // ждём, пока поток заблокируется
         await().atMost(200, MILLISECONDS).until(t::isAlive);
 
-        // освобождаем место
         queue.take();
 
-        // ждём завершения потока
         t.join(500);
         assertFalse(t.isAlive(), "После освобождения места поток должен завершиться");
     }

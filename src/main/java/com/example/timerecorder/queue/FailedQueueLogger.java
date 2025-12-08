@@ -26,7 +26,6 @@ public class FailedQueueLogger {
     private Thread loggerThread;
     private volatile boolean running = true;
 
-    // Сохраняем уже залогированные элементы
     private final Set<ZonedDateTime> loggedElements = new HashSet<>();
 
     public FailedQueueLogger(TimeQueue queue) {
@@ -65,11 +64,9 @@ public class FailedQueueLogger {
     private void runLogger() {
         while (running) {
             try {
-                // Копируем текущие элементы очереди
                 Set<ZonedDateTime> currentSnapshot = new HashSet<>();
                 queue.getAllElements().forEach(currentSnapshot::add);
 
-                // Убираем уже залогированные
                 currentSnapshot.removeAll(loggedElements);
 
                 if (!currentSnapshot.isEmpty()) {
@@ -77,7 +74,7 @@ public class FailedQueueLogger {
                     loggedElements.addAll(currentSnapshot);
                 }
 
-                TimeUnit.MILLISECONDS.sleep(500); // интервал проверки
+                TimeUnit.MILLISECONDS.sleep(500);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
