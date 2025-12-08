@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -23,6 +25,9 @@ public class FailedQueueLogger {
     private final TimeQueue queue;
     private Thread loggerThread;
     private volatile boolean running = true;
+
+    // Сохраняем уже залогированные элементы
+    private final Set<ZonedDateTime> loggedElements = new HashSet<>();
 
     public FailedQueueLogger(TimeQueue queue) {
         this.queue = queue;
@@ -60,11 +65,18 @@ public class FailedQueueLogger {
     private void runLogger() {
         while (running) {
             try {
-                // Берём элемент без удаления из очереди
-                ZonedDateTime peeked = queue.peek();
-                if (peeked != null && queue.size() > queue.remainingCapacity() / 2) {
-                    writeToFile(peeked);
+                // Копируем текущие элементы очереди
+                Set<ZonedDateTime> currentSnapshot = new HashSet<>();
+                queue.getAllElements().forEach(currentSnapshot::add);
+
+                // Убираем уже залогированные
+                currentSnapshot.removeAll(loggedElements);
+
+                if (!currentSnapshot.isEmpty()) {
+                    writeToFile(currentSnapshot);
+                    loggedElements.addAll(currentSnapshot);
                 }
+
                 TimeUnit.MILLISECONDS.sleep(500); // интервал проверки
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -73,12 +85,14 @@ public class FailedQueueLogger {
         }
     }
 
-    private void writeToFile(ZonedDateTime time) {
+    private void writeToFile(Set<ZonedDateTime> elements) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE.toFile(), true))) {
-            writer.write(time.toString());
-            writer.newLine();
+            for (ZonedDateTime time : elements) {
+                writer.write(time.toString());
+                writer.newLine();
+            }
         } catch (IOException e) {
-            log.error("Не удалось записать элемент очереди в файл журнала: {}", time, e);
+            log.error("Не удалось записать элемент очереди в файл журнала", e);
         }
     }
 }

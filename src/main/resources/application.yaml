@@ -5,9 +5,9 @@ spring:
     password: postgres
     driver-class-name: org.postgresql.Driver
     hikari:
-      connection-timeout: 1000
-      validation-timeout: 1000
-      max-lifetime: 1200000
+      connection-timeout: 900
+      validation-timeout: 900
+      max-lifetime: 5000
       maximum-pool-size: 15
 
   sql:
@@ -20,7 +20,7 @@ spring:
         size: 1
 
 app:
-    queue: { capacity: 50 }
+    queue: { capacity: 100 }
 
 logging:
   level:
