@@ -54,11 +54,7 @@ public class TimeQueue {
         return queue.remainingCapacity();
     }
 
-    LinkedBlockingQueue<ZonedDateTime> getQueueForTest() {
-        return (LinkedBlockingQueue<ZonedDateTime>) queue;
-    }
-
-    void putForTest(ZonedDateTime value) throws InterruptedException {
-        queue.put(value);
+    public ZonedDateTime peek() {
+        return queue.peek();
     }
 }
